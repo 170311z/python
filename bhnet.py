@@ -159,3 +159,8 @@ def run_command(command):
 	# コマンドを実行し出力結果を取得
 	try:
 		output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+	except:
+		output = "Failed to execute command.\r\n"
+
+	# 出力結果をクライアントに送信
+	return output
