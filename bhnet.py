@@ -93,3 +93,69 @@ def main():
 		server_loop()
 
 main()
+def client_sender(buffer):
+	client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+	try:
+		# 標的ホストへの接続
+		client.connect((target, port))
+
+		# 標準入力からの入力を受け取ったかどうかを確認する．
+		if len(buffer):
+			client.send(buffer)
+
+		while True:
+			# 標的ホストからのデータを待機
+			recv_len = 1
+			response = ""
+
+			while recv_len:
+				data      = client.recv(4096)
+				recv_len  = len(data)
+				response += data
+
+				if recv_len < 4096:
+					break
+
+				print response,
+
+				# 追加の入力を待機
+				buffer = raw_input("")
+				buffer += "\n"
+
+				# データの送信
+				client.send(buffer)
+
+			except:
+				print "[*] Exception! Exiting."
+
+				# 接続の終了
+				client.close()
+	
+def server_loop():
+	global target
+
+	# 待機するIPアドレスが指定されていない場合はすべてのインターフェースで接続を待機
+	if not len (target):
+		target = "0.0.0.0"
+
+	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	
+	server.bind((target,port))
+
+	server.listen(5)
+
+	while:
+		client_socket, addr = server.accept()
+
+		# クライアントからの新しい接続を処理するスレッドの起動
+		client_thread = threading.Thread(target=client_handler, args=(client_socket,))
+		client_thread.start()
+
+def run_command(command):
+	# 文字列の末尾の改行を削除
+	command = command.rstrip()
+
+	# コマンドを実行し出力結果を取得
+	try:
+		output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
